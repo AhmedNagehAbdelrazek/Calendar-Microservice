@@ -6,8 +6,10 @@ const User = require('../Model/userModel');
 /**
  * Provides a service for interacting with the Google Calendar API on behalf of a user.
  */
+   
 class GoogleCalendarService {
-  /**
+
+/**
    * Constructs a new GoogleCalendarService instance.
    * 
    * The constructor initializes the OAuth2 client with the necessary credentials from the environment.
@@ -19,6 +21,8 @@ class GoogleCalendarService {
       process.env.GOOGLE_REDIRECT_URI
     );
   }
+  
+ 
 
   /**
    * Retrieves the calendar for the specified user.
@@ -27,33 +31,6 @@ class GoogleCalendarService {
    * @returns {Promise<google.calendar_v3.Calendar>} - The calendar for the specified user.
    * @throws {Error} - If the user is not found or the Google token is not available.
    */
-  async getCalendarForUser(userId) {
-    // Implementation details omitted
-  }
-
- 
-
-  /**
-   * Adds an event to the specified user's calendar.
-   * 
-   * @param {string} userId - The ID of the user to add the event to.
-   * @param {string} [calendarId='primary'] - The ID of the calendar to add the event to.
-   * @param {google.calendar_v3.Schema$Event} event - The event to add.
-   * @returns {Promise<google.calendar_v3.Schema$Event>} - The added event.
-   */
-  async addEvent(userId, calendarId = 'primary', event) {
-    // Implementation details omitted
-  }
-}
-
-class GoogleCalendarService {
-  constructor() {
-    this.oauth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
-      process.env.GOOGLE_REDIRECT_URI
-    );
-  }
 
   async getCalendarForUser(userId) {
     const user = await User.findById(userId);
@@ -69,9 +46,24 @@ class GoogleCalendarService {
   }
 
 
+  /**
+   * Adds an event to the specified user's calendar.
+   * 
+   * @param {string} userId - The ID of the user to add the event to.
+   * @param {string} [calendarId='primary'] - The ID of the calendar to add the event to.
+   * @param {google.calendar_v3.Schema$Event} event - The event to add.
+   * @returns {Promise<google.calendar_v3.Schema$Event>} - The added event.
+   */
 
-  async addEvent(userId, calendarId = 'primary', event) {
+  async addEvent(userId, calendarId = 'primary', event, reminderLeadTime) {
     const calendar = await this.getCalendarForUser(userId);
+    event.reminders = {
+      useDefault: false,
+      overrides: [
+        { method: 'email', minutes: reminderLeadTime },
+      ],
+    };
+
     const res = await calendar.events.insert({
       calendarId,
       resource: event,

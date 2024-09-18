@@ -20,7 +20,7 @@ const googleCalendarService = require('../Service/googleCalenderService');
  */
 exports.addEvent = async (req, res) => {
   try {
-    const { title, description, startDateTime, endDateTime, location, userId } = req.body;
+    const { title, description, startDateTime, endDateTime, location, userId, reminderLeadTime } = req.body;
 
     // Create event in local database
     const newEvent = new CalendarEvent({
@@ -39,9 +39,10 @@ exports.addEvent = async (req, res) => {
       description,
       start: { dateTime: startDateTime },
       end: { dateTime: endDateTime },
-      location
+      location,
+      reminderLeadTime: { minutes: reminderLeadTime || 30} // Default to 30 minutes if not specified
     };
-    const result = await googleCalendarService.addEvent(userId, 'primary', googleEvent);
+    const result = await googleCalendarService.addEvent(userId, 'primary', googleEvent, reminderLeadTime);
 
     // Update local event with Google Calendar ID
     newEvent.googleCalendarEventId = result.id;
