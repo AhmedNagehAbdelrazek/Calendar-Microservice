@@ -1,10 +1,10 @@
 // controllers/authController.js
-const { google } = require('googleapis');
-const User = require('../Model/userModel');
+const { google } = require("googleapis");
+const User = require("../Model/userModel");
 
 /**
  * Handles Google OAuth2 authentication flow for the application.
- * 
+ *
  * The `googleAuth` function generates a Google OAuth2 authorization URL and redirects the user to it.
  * The `googleCallback` function handles the callback from Google after the user authorizes the application.
  * It exchanges the authorization code for access and refresh tokens, retrieves the user's profile information,
@@ -19,30 +19,30 @@ const oauth2Client = new google.auth.OAuth2(
 
 // Scopes for Google Calendar and user info
 const SCOPES = [
-  'https://www.googleapis.com/auth/calendar',
-  'https://www.googleapis.com/auth/userinfo.email',
-  'https://www.googleapis.com/auth/userinfo.profile'
+  "https://www.googleapis.com/auth/calendar",
+  "https://www.googleapis.com/auth/userinfo.email",
+  "https://www.googleapis.com/auth/userinfo.profile",
 ];
 
 exports.googleAuth = (req, res) => {
   const authUrl = oauth2Client.generateAuthUrl({
-    access_type: 'offline',
+    access_type: "offline",
     scope: SCOPES,
-    prompt: 'consent' // This ensures we always get a refresh token
+    prompt: "consent", // This ensures we always get a refresh token
   });
   res.redirect(authUrl);
 };
 
 exports.googleCallback = async (req, res) => {
   const { code } = req.query;
-  
+
   try {
     // Exchange the code for tokens
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
 
     // Get user info
-    const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
+    const oauth2 = google.oauth2({ version: "v2", auth: oauth2Client });
     const { data } = await oauth2.userinfo.get();
 
     // Find or create user
@@ -51,7 +51,7 @@ exports.googleCallback = async (req, res) => {
       user = new User({
         email: data.email,
         name: data.name,
-        picture: data.picture
+        picture: data.picture,
       });
     }
 
@@ -59,13 +59,13 @@ exports.googleCallback = async (req, res) => {
     user.googleToken = tokens;
     await user.save();
 
-    res.redirect('/auth-success');
+    res.redirect("/auth-success");
   } catch (error) {
-    console.error('Google Auth Error:', error);
-    res.status(500).json({ error: 'Authentication failed' });
+    console.error("Google Auth Error:", error);
+    res.status(500).json({ error: "Authentication failed" });
   }
 };
 
 exports.logout = (req, res) => {
-  res.redirect('/');
+  res.redirect("/");
 };
