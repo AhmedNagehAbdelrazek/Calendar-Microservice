@@ -1,10 +1,20 @@
-const { syncEvents, addEvent, listEvents  } = require('../Controller/calenderController')
-const express = require('express')
+const express = require("express");
+const {
+  addEvent,
+  listEvents,
+  getEventById,
+  updateEvent,
+  deleteEvent,
+  syncEvents,
+} = require("../Controller/calenderController");
 
-const router = express.Router()
+const router = express.Router();
 
-router.post('/add', addEvent);
-
+router.post("/add", addEvent);
+router.get("/list/:userId", listEvents);
+router.get("/:eventId", getEventById);
+router.put("/:eventId", updateEvent);
+router.delete("/:eventId", deleteEvent);
+router.post("/sync/:userId", syncEvents);
 
 module.exports = router;
-
