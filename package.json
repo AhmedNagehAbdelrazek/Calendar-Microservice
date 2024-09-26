@@ -1,10 +1,10 @@
 {
   "name": "calendar-microservice",
   "version": "1.0.0",
-  "description": "Calendar Microservice allows to handle a caledar events with the help of using the google services",
+  "description": "Calendar Microservice allows to handle a calendar events with the help of using the google services",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
@@ -14,5 +14,8 @@
     "express": "^4.21.0",
     "googleapis": "^144.0.0",
     "mongoose": "^8.6.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
   }
 }

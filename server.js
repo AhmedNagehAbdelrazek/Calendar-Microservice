@@ -1,8 +1,8 @@
 require("dotenv").config();
 const express = require("express");
 const connectDB = require("./config/connectDb");
-const calendarRoutes = require("./Routes/calenderRoutes");
-const authRoutes = require("./Routes/authRoutes");
+const calendarRoutes = require("./routes/calendarRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 3000;

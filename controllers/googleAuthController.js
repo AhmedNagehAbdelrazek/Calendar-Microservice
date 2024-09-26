@@ -1,6 +1,6 @@
 // controllers/authController.js
 const { google } = require("googleapis");
-const User = require("../Model/userModel");
+const User = require("../models/userModel");
 
 /**
  * Handles Google OAuth2 authentication flow for the application.

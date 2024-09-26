@@ -1,6 +1,6 @@
 require(`dotenv`).config();
 const { google } = require("googleapis");
-const User = require("../Model/userModel");
+const User = require("../models/userModel");
 
 /**
  * Provides a service for interacting with the Google Calendar API on behalf of a user.

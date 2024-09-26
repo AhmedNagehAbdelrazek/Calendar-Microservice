@@ -3,7 +3,7 @@ const router = express.Router();
 const {
   googleAuth,
   googleCallback,
-} = require("../Controller/googleAuthController");
+} = require("../controllers/googleAuthController");
 
 router.get("/google", googleAuth);
 router.get("/google/callback", googleCallback);
