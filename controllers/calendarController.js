@@ -20,11 +20,21 @@ const CalendarService = require("../services/calendarService");
  */
 exports.addEvent = async (req, res) => {
   try {
-    const newEvent = await CalendarService.addEvent(req.body);
+    const userId = req.user.userId;
+    const eventData = {
+      ...req.body,
+      userId,
+    };
+
+    console.log("Event data to be added:", eventData);
+
+    const newEvent = await CalendarService.addEvent(eventData);
     res.json(newEvent);
   } catch (error) {
     console.log("Error adding event:", error);
-    res.status(500).json({ error: "Failed to add event" });
+    res
+      .status(500)
+      .json({ error: "Failed to add event", details: error.message });
   }
 };
 
@@ -53,7 +63,7 @@ exports.listEvents = async (req, res) => {
 exports.getEventById = async (req, res) => {
   try {
     const { eventId } = req.params;
-    const event = await CalendarService.getEventById(eventId);
+    const event = await CalendarService.getEvent(eventId);
     res.json(event);
   } catch (error) {
     console.log("Error retrieving event:", error);

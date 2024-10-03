@@ -13,6 +13,12 @@ class CalendarService {
       reminderLeadTime,
     } = eventData;
 
+    console.log("Received event data:", eventData);
+
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+
     // Create event in local database
     const newEvent = new CalendarEvent({
       title,
@@ -33,17 +39,23 @@ class CalendarService {
       location,
       reminderLeadTime: { minutes: reminderLeadTime || 30 }, // Default to 30 minutes if not specified
     };
-    const result = await googleCalendarService.addEvent(
-      userId,
-      "primary",
-      googleEvent,
-      reminderLeadTime
-    );
 
-    // Update local event with Google Calendar ID
-    newEvent.googleCalendarEventId = result.id;
-    newEvent.isSync = true;
-    await newEvent.save();
+    try {
+      const result = await googleCalendarService.addEvent(
+        userId,
+        "primary",
+        googleEvent,
+        reminderLeadTime
+      );
+
+      // Update local event with Google Calendar ID
+      newEvent.googleCalendarEventId = result.id;
+      newEvent.isSync = true;
+      await newEvent.save();
+    } catch (error) {
+      console.log("Error syncing with Google Calendar:", error);
+      // Even if Google Calendar sync fails, we still return the local event
+    }
 
     return newEvent;
   }
