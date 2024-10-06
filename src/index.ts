@@ -1,5 +1,3 @@
-import AuthenticationService from "./authenticationService";
-import GoogleCalendarService from "./googleCalendarService";
-import OAuthService from "./oauthService";
+import { GoogleCalendarAuthService } from "./googleCalendarService";
 
-export { AuthenticationService, GoogleCalendarService, OAuthService };
+export default { GoogleCalendarAuthService };

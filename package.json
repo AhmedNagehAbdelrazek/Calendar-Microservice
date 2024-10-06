@@ -14,15 +14,12 @@
     "authentication",
     "oauth"
   ],
-  "author": "Mohamed Ezzat",
+  "author": "Mohamed Ezzat, Mohamed Gamal",
   "license": "MIT",
   "dependencies": {
-    "dotenv": "^10.0.0",
-    "googleapis": "^92.0.0",
-    "jsonwebtoken": "^8.5.1"
+    "googleapis": "^92.0.0"
   },
   "devDependencies": {
-    "@types/jsonwebtoken": "^8.5.9",
     "@types/node": "^16.18.112",
     "typescript": "^4.9.5"
   },
