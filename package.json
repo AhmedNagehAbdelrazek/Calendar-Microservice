@@ -1,22 +1,32 @@
 {
-  "name": "calendar-microservice",
-  "version": "1.0.0",
-  "description": "Calendar Microservice allows to handle a calendar events with the help of using the google services",
-  "main": "server.js",
+  "name": "google-calendar-service",
+  "version": "0.1.0",
+  "description": "A service for Google Calendar authentication and operations",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "start": "nodemon server.js"
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "google",
+    "calendar",
+    "authentication",
+    "oauth"
+  ],
+  "author": "Mohamed Ezzat",
+  "license": "MIT",
   "dependencies": {
-    "dotenv": "^16.4.5",
-    "express": "^4.21.0",
-    "googleapis": "^144.0.0",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.6.2"
+    "dotenv": "^10.0.0",
+    "googleapis": "^92.0.0",
+    "jsonwebtoken": "^8.5.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.7"
+    "@types/jsonwebtoken": "^8.5.9",
+    "@types/node": "^16.18.112",
+    "typescript": "^4.9.5"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }
