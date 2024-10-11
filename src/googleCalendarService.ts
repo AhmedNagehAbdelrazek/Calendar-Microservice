@@ -1,136 +1,102 @@
-import { OAuth2Client, Credentials } from "google-auth-library";
+import { OAuth2Client } from "google-auth-library";
 import { google, calendar_v3 } from "googleapis";
+import { Event } from "./types";
 
-export class GoogleCalendarAuthService {
-  private static instance: GoogleCalendarAuthService;
-  private oauth2Client: OAuth2Client;
+export class GoogleCalendarService {
   private calendar: calendar_v3.Calendar;
 
-  private constructor(
-    clientId: string,
-    clientSecret: string,
-    redirectUri: string
-  ) {
-    this.oauth2Client = new google.auth.OAuth2(
-      clientId,
-      clientSecret,
-      redirectUri
-    );
-    this.calendar = google.calendar({ version: "v3" });
-  }
-
-  public static getInstance(
-    clientId: string,
-    clientSecret: string,
-    redirectUri: string
-  ): GoogleCalendarAuthService {
-    if (!GoogleCalendarAuthService.instance) {
-      GoogleCalendarAuthService.instance = new GoogleCalendarAuthService(
-        clientId,
-        clientSecret,
-        redirectUri
-      );
-    }
-
-    return GoogleCalendarAuthService.instance;
-  }
-
-  public generateAuthUrl(): string {
-    const scopes = [
-      "https://www.googleapis.com/auth/calendar",
-      "https://www.googleapis.com/auth/userinfo.email",
-      "https://www.googleapis.com/auth/userinfo.profile",
-    ];
-
-    return this.oauth2Client.generateAuthUrl({
-      access_type: "offline",
-      scope: scopes,
-      prompt: "consent",
-    });
-  }
-
-  public async getTokens(code: string): Promise<Credentials> {
-    const { tokens } = await this.oauth2Client.getToken(code);
-    return tokens;
+  constructor(private readonly oauth2Client: OAuth2Client) {
+    this.calendar = google.calendar({ version: "v3", auth: this.oauth2Client });
   }
 
   public async addEvent(
-    token: Credentials,
     calendarId: string = "primary",
-    event: calendar_v3.Schema$Event
+    event: Event
   ): Promise<calendar_v3.Schema$Event> {
-    this.oauth2Client.setCredentials(token);
-
-    const response = await this.calendar.events.insert({
-      auth: this.oauth2Client,
-      calendarId,
-      requestBody: event,
-      sendUpdates: "all",
-    });
-    return response.data;
+    try {
+      const response = await this.calendar.events.insert({
+        calendarId,
+        requestBody: event,
+        sendUpdates: "all",
+      });
+      return response.data;
+    } catch (error) {
+      throw new CalendarApiError("Failed to add event", error);
+    }
   }
 
   public async updateEvent(
-    token: Credentials,
     calendarId: string = "primary",
     eventId: string,
-    event: calendar_v3.Schema$Event
+    event: Event
   ): Promise<calendar_v3.Schema$Event> {
-    this.oauth2Client.setCredentials(token);
-
-    const response = await this.calendar.events.update({
-      auth: this.oauth2Client,
-      calendarId,
-      eventId,
-      requestBody: event,
-      sendUpdates: "all",
-    });
-    return response.data;
+    try {
+      const response = await this.calendar.events.update({
+        calendarId,
+        eventId,
+        requestBody: event,
+        sendUpdates: "all",
+      });
+      return response.data;
+    } catch (error) {
+      throw new CalendarApiError("Failed to update event", error);
+    }
   }
 
   public async deleteEvent(
-    token: Credentials,
     calendarId: string = "primary",
     eventId: string
   ): Promise<void> {
-    this.oauth2Client.setCredentials(token);
-
-    await this.calendar.events.delete({
-      auth: this.oauth2Client,
-      calendarId,
-      eventId,
-    });
+    try {
+      await this.calendar.events.delete({
+        calendarId,
+        eventId,
+      });
+    } catch (error) {
+      throw new CalendarApiError("Failed to delete event", error);
+    }
   }
 
   public async listEvents(
-    token: Credentials,
     calendarId: string = "primary",
     timeMin: string,
-    timeMax: string
-  ): Promise<calendar_v3.Schema$Event[]> {
-    this.oauth2Client.setCredentials(token);
-
-    const response = await this.calendar.events.list({
-      auth: this.oauth2Client,
-      calendarId,
-      timeMin,
-      timeMax,
-    });
-    return response.data.items || [];
+    timeMax: string,
+    pageToken?: string,
+    maxResults: number = 100
+  ): Promise<calendar_v3.Schema$Events> {
+    try {
+      const response = await this.calendar.events.list({
+        calendarId,
+        timeMin,
+        timeMax,
+        pageToken,
+        maxResults,
+      });
+      return response.data;
+    } catch (error) {
+      throw new CalendarApiError("Failed to list events", error);
+    }
   }
 
   public async getEvent(
-    token: Credentials,
     calendarId: string = "primary",
     eventId: string
   ): Promise<calendar_v3.Schema$Event> {
-    this.oauth2Client.setCredentials(token);
+    try {
+      const response = await this.calendar.events.get({
+        calendarId,
+        eventId,
+      });
+      return response.data;
+    } catch (error) {
+      throw new CalendarApiError("Failed to get event", error);
+    }
+  }
+}
 
-    const response = await this.calendar.events.get({
-      auth: this.oauth2Client,
-      calendarId,
-      eventId,
-    });
-    return response.data;
+class CalendarApiError extends Error {
+  constructor(message: string, public readonly originalError: any) {
+    super(message);
+    this.name = "CalendarApiError";
   }
 }

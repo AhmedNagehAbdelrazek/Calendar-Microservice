@@ -1,3 +1,2 @@
-import { GoogleCalendarAuthService } from "./googleCalendarService";
-
-export default { GoogleCalendarAuthService };
+export { GoogleCalendarService } from "./googleCalendarService";
+export { Event } from "./types";

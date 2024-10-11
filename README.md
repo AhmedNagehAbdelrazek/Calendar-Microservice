@@ -1,122 +1,130 @@
 # Google Calendar Service
 
-A TypeScript package for easy integration with Google Calendar API, providing a simple interface for authentication and calendar operations.
+A TypeScript package for easy integration with Google Calendar API.
 
 ## Table of Contents
 
-- [Features](#features)
 - [Installation](#installation)
+- [Configuration](#configuration)
+  - [Environment Variables](#environment-variables)
+  - [OAuth2 Setup](#oauth2-setup)
 - [Usage](#usage)
-  - [Authentication](#authentication)
+  - [Initializing the Service](#initializing-the-service)
   - [Adding an Event](#adding-an-event)
   - [Updating an Event](#updating-an-event)
   - [Deleting an Event](#deleting-an-event)
   - [Listing Events](#listing-events)
   - [Getting a Single Event](#getting-a-single-event)
-
-## Features
-
-- Easy OAuth2 authentication with Google
-- Singleton pattern for efficient resource management
-- TypeScript support for better developer experience
-- Comprehensive coverage of Google Calendar operations:
-  - Add events
-  - Update events
-  - Delete events
-  - List events
-  - Get single event details
+- [Error Handling](#error-handling)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Installation
 
-To install the package, run the following command in your project directory:
+Install the package using npm:
 
 ```bash
 npm install google-calendar-service
 ```
 
+## Configuration
+
+### Environment Variables
+
+Create a `.env` file in your project root and add the following variables:
+
+```
+GOOGLE_CLIENT_ID=your_client_id
+GOOGLE_CLIENT_SECRET=your_client_secret
+GOOGLE_REDIRECT_URI=your_redirect_uri
+```
+
+### OAuth2 Setup
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
+2. Create a new project or select an existing one.
+3. Enable the Google Calendar API for your project.
+4. Create OAuth 2.0 credentials (OAuth client ID).
+5. Set the authorized redirect URIs.
+6. Download the client configuration and use it to set up your environment variables.
+
 ## Usage
 
-First, import the `GoogleCalendarAuthService` from the package:
+### Initializing the Service
 
 ```typescript
-import { GoogleCalendarAuthService } from "google-calendar-service";
-```
+import { GoogleCalendarService } from "google-calendar-service";
+import { OAuth2Client } from "google-auth-library";
 
-### Authentication
-
-Initialize the service with your Google API credentials:
-
-```typescript
-const clientId = "YOUR_CLIENT_ID";
-const clientSecret = "YOUR_CLIENT_SECRET";
-const redirectUri = "YOUR_REDIRECT_URI";
-
-const calendarService = GoogleCalendarAuthService.getInstance(
-  clientId,
-  clientSecret,
-  redirectUri
+const oauth2Client = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_REDIRECT_URI
 );
-```
 
-Generate an authentication URL:
+// Set credentials (after user authentication)
+oauth2Client.setCredentials(/* user's tokens */);
 
-```typescript
-const authUrl = calendarService.generateAuthUrl();
-console.log("Please visit this URL to authorize the application:", authUrl);
-```
-
-After the user grants permission, exchange the received code for tokens:
-
-```typescript
-const code = "AUTHORIZATION_CODE_FROM_REDIRECT";
-const tokens = await calendarService.getTokens(code);
+const calendarService = new GoogleCalendarService(oauth2Client);
 ```
 
 ### Adding an Event
 
 ```typescript
-const event = {
+const newEvent = {
   summary: "Team Meeting",
   location: "Conference Room 1",
-  description: "Monthly team sync-up",
+  description: "Discuss Q2 goals",
   start: {
-    dateTime: "2023-07-01T09:00:00-07:00",
+    dateTime: "2024-10-15T09:00:00-07:00",
     timeZone: "America/Los_Angeles",
   },
   end: {
-    dateTime: "2023-07-01T10:00:00-07:00",
+    dateTime: "2024-10-15T10:00:00-07:00",
     timeZone: "America/Los_Angeles",
   },
 };
 
-const createdEvent = await calendarService.addEvent(tokens, "primary", event);
-console.log("Event created:", createdEvent);
+try {
+  const createdEvent = await calendarService.addEvent("primary", newEvent);
+  console.log("Event created:", createdEvent);
+} catch (error) {
+  console.error("Error creating event:", error);
+}
 ```
 
 ### Updating an Event
 
 ```typescript
-const eventId = "EXISTING_EVENT_ID";
+const eventId = "your_event_id";
 const updatedEvent = {
   summary: "Updated Team Meeting",
-  description: "Monthly team sync-up with new agenda",
+  description: "Discuss Q2 goals and project timeline",
 };
 
-const updated = await calendarService.updateEvent(
-  tokens,
-  "primary",
-  eventId,
-  updatedEvent
-);
-console.log("Event updated:", updated);
+try {
+  const updated = await calendarService.updateEvent(
+    "primary",
+    eventId,
+    updatedEvent
+  );
+  console.log("Event updated:", updated);
+} catch (error) {
+  console.error("Error updating event:", error);
+}
 ```
 
 ### Deleting an Event
 
 ```typescript
-const eventId = "EVENT_ID_TO_DELETE";
-await calendarService.deleteEvent(tokens, "primary", eventId);
-console.log("Event deleted successfully");
+const eventId = "your_event_id";
+
+try {
+  await calendarService.deleteEvent("primary", eventId);
+  console.log("Event deleted successfully");
+} catch (error) {
+  console.error("Error deleting event:", error);
+}
 ```
 
 ### Listing Events
@@ -125,19 +133,59 @@ console.log("Event deleted successfully");
 const timeMin = new Date().toISOString();
 const timeMax = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // One week from now
 
-const events = await calendarService.listEvents(
-  tokens,
-  "primary",
-  timeMin,
-  timeMax
-);
-console.log("Upcoming events:", events);
+try {
+  const events = await calendarService.listEvents("primary", timeMin, timeMax);
+  console.log("Upcoming events:", events.items);
+
+  // Handle pagination
+  if (events.nextPageToken) {
+    const nextPageEvents = await calendarService.listEvents(
+      "primary",
+      timeMin,
+      timeMax,
+      events.nextPageToken
+    );
+    console.log("Next page events:", nextPageEvents.items);
+  }
+} catch (error) {
+  console.error("Error listing events:", error);
+}
 ```
 
 ### Getting a Single Event
 
 ```typescript
-const eventId = "EVENT_ID_TO_RETRIEVE";
-const event = await calendarService.getEvent(tokens, "primary", eventId);
-console.log("Event details:", event);
+const eventId = "your_event_id";
+
+try {
+  const event = await calendarService.getEvent("primary", eventId);
+  console.log("Event details:", event);
+} catch (error) {
+  console.error("Error getting event:", error);
+}
 ```
+
+## Error Handling
+
+The package uses custom `CalendarApiError` for error handling. Always wrap your calls in try-catch blocks to handle potential errors:
+
+```typescript
+try {
+  // Your calendar service method call
+} catch (error) {
+  if (error instanceof CalendarApiError) {
+    console.error("Calendar API Error:", error.message);
+    console.error("Original Error:", error.originalError);
+  } else {
+    console.error("Unexpected error:", error);
+  }
+}
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License.
